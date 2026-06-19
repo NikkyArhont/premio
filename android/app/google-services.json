@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1071759527014",
+    "project_id": "premoisaun",
+    "storage_bucket": "premoisaun.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1071759527014:android:cbd9fa83e1ac28a838b1a7",
+        "android_client_info": {
+          "package_name": "com.premio.premio"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzU3s81LjauFipYzFhhFdjPyVlWafhOk4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
