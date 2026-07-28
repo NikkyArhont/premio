@@ -39,8 +39,9 @@ class _ClientProfileState extends ConsumerState<ClientProfile> {
           _buildSupportCard(),
           const SizedBox(height: 16),
           _buildLogoutCard(context, ref),
-          const SizedBox(height: 16),
-          _buildWebAdminButton(context),
+          // Временно скрыта кнопка перехода в админку
+          // const SizedBox(height: 16),
+          // _buildWebAdminButton(context),
           const SizedBox(height: 32),
         ],
       ),
