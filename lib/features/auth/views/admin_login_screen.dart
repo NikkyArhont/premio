@@ -57,10 +57,15 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                       // Логотип
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        child: Image.asset(
-                          'assets/logo.png', 
-                          height: 60, 
-                          errorBuilder: (context, error, stackTrace) => const SizedBox(height: 60),
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'assets/logo.png', 
+                              height: 60, 
+                              errorBuilder: (context, error, stackTrace) => const SizedBox(height: 60),
+                            ),
+                            const Text('v1.0.9', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -196,6 +201,20 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                             ],
                           ),
                           textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: () {
+                          context.go('/login');
+                        },
+                        child: const Text(
+                          'ВРЕМЕННО: Перейти в мобильную версию',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),

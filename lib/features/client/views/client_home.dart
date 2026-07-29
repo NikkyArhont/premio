@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:premio/features/client/views/client_profile.dart';
+import 'package:premio/features/device/views/device_control_view.dart';
+import 'package:premio/features/device/providers/device_provider.dart';
 
 class ClientHome extends ConsumerStatefulWidget {
   const ClientHome({super.key});
@@ -49,33 +51,39 @@ class _ClientHomeState extends ConsumerState<ClientHome> {
   }
 }
 
-class ClientDashboard extends StatefulWidget {
+class ClientDashboard extends ConsumerStatefulWidget {
   const ClientDashboard({super.key});
 
   @override
-  State<ClientDashboard> createState() => _ClientDashboardState();
+  ConsumerState<ClientDashboard> createState() => _ClientDashboardState();
 }
 
-class _ClientDashboardState extends State<ClientDashboard> {
+class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   double _targetTemp = 90.0;
-  double _humidity = 50.0;
-  double _lighting = 80.0;
-  bool _isPowerOn = true;
 
   @override
   Widget build(BuildContext context) {
+    final deviceState = ref.watch(deviceStatusProvider);
+    final isConnected = deviceState.isConnected;
+    final status = deviceState.status;
+    final tempStr = status?.temperature?.toInt().toString() ?? '--';
+    final humidity = status?.humidity ?? 0.0;
+    final lighting = deviceState.localBrightness.toDouble();
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(),
+          _buildHeader(isConnected),
+          const SizedBox(height: 16),
+          const DeviceControlView(),
           const SizedBox(height: 24),
-          _buildStatusRow(),
+          _buildStatusRow(isConnected),
           const SizedBox(height: 16),
-          _buildTemperatureCard(),
+          _buildTemperatureCard(tempStr),
           const SizedBox(height: 16),
-          _buildClimateCard(),
+          _buildClimateCard(humidity, lighting),
           const SizedBox(height: 16),
           _buildTimerCard(),
         ],
@@ -83,7 +91,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isConnected) {
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -105,10 +113,10 @@ class _ClientDashboardState extends State<ClientDashboard> {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
-              children: const [
+              children: [
                 Text(
-                  'Выключена',
-                  style: TextStyle(
+                  isConnected ? 'Включена' : 'Выключена',
+                  style: const TextStyle(
                     color: Color(0xFF1A1A1A),
                     fontSize: 14,
                     fontFamily: 'Roboto',
@@ -123,18 +131,24 @@ class _ClientDashboardState extends State<ClientDashboard> {
           alignment: Alignment.centerRight,
           child: Image.asset('assets/Notification.png', width: 28, height: 28),
         ),
-        Image.asset('assets/logo.png', width: 115, height: 32),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/logo.png', width: 115, height: 32),
+            const Text('v1.0.9', style: TextStyle(fontSize: 10, color: Colors.grey)),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _buildStatusRow() {
+  Widget _buildStatusRow(bool isConnected) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _buildStatusCard('СЕАНС', '00:27:47', Icons.timer_outlined),
         _buildStatusCard('ГОТОВНОСТЬ', '100%', Icons.water_drop_outlined),
-        _buildStatusCard('ПИТАНИЕ', _isPowerOn ? 'Вкл.' : 'Выкл.', Icons.power_settings_new),
+        _buildStatusCard('ПИТАНИЕ', isConnected ? 'Вкл.' : 'Выкл.', Icons.power_settings_new),
       ],
     );
   }
@@ -187,7 +201,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
     );
   }
 
-  Widget _buildTemperatureCard() {
+  Widget _buildTemperatureCard(String tempStr) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -233,9 +247,9 @@ class _ClientDashboardState extends State<ClientDashboard> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    '82°',
-                    style: TextStyle(
+                  Text(
+                    '$tempStr°',
+                    style: const TextStyle(
                       color: Color(0xFFFF5D40),
                       fontSize: 64,
                       fontWeight: FontWeight.w500,
@@ -306,7 +320,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
     );
   }
 
-  Widget _buildClimateCard() {
+  Widget _buildClimateCard(double humidity, double lighting) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -326,26 +340,29 @@ class _ClientDashboardState extends State<ClientDashboard> {
             title: 'Влажность',
             subtitle: 'Уровень влажности',
             assetPath: 'assets/Humidity.png',
-            value: _humidity,
+            value: humidity,
             unit: '%',
             min: 0,
             max: 100,
             activeTrackColor: const Color(0xFF02B3FF),
             thumbColor: const Color(0xFF10B6FD),
-            onChanged: (val) => setState(() => _humidity = val),
+            isReadOnly: true,
+            onChanged: (val) {},
           ),
           const SizedBox(height: 16),
           _buildClimateControl(
             title: 'Освещение',
             subtitle: 'Уровень освещения',
             assetPath: 'assets/Light.png',
-            value: _lighting,
+            value: lighting,
             unit: '%',
             min: 0,
             max: 100,
             activeTrackColor: const Color(0xFFFFAE3E),
             thumbColor: const Color(0xFFFFB142),
-            onChanged: (val) => setState(() => _lighting = val),
+            onChanged: (val) {
+              ref.read(deviceStatusProvider.notifier).updateBrightness(val.toInt());
+            },
           ),
         ],
       ),
@@ -363,6 +380,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
     required Color activeTrackColor,
     required Color thumbColor,
     required ValueChanged<double> onChanged,
+    bool isReadOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,18 +432,21 @@ class _ClientDashboardState extends State<ClientDashboard> {
           ],
         ),
         const SizedBox(height: 8),
-        SliderTheme(
-          data: SliderThemeData(
-            activeTrackColor: activeTrackColor,
-            inactiveTrackColor: const Color(0xFFEFEFEF),
-            thumbColor: thumbColor,
-            trackHeight: 6,
-          ),
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            onChanged: onChanged,
+        AbsorbPointer(
+          absorbing: isReadOnly,
+          child: SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: activeTrackColor,
+              inactiveTrackColor: const Color(0xFFEFEFEF),
+              thumbColor: isReadOnly ? Colors.transparent : thumbColor,
+              trackHeight: 6,
+            ),
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              onChanged: onChanged,
+            ),
           ),
         ),
       ],

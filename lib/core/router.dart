@@ -58,7 +58,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       if (!loggedIn) {
         if (isLoggingIn || isPermission || isSuccess || isProfileSetup || isOnboarding) {
-          if (_isAdminInterface && state.matchedLocation == '/login') return '/admin-login';
+          // if (_isAdminInterface && state.matchedLocation == '/login') return '/admin-login';
           if (!_isAdminInterface && (state.matchedLocation == '/admin-login' || state.matchedLocation == '/admin-register')) return '/login';
           return null;
         }
